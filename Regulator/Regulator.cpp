@@ -1,6 +1,3 @@
-// Regulator.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -10,9 +7,12 @@
 
 using namespace std;
 
-int temperatura;
-int vlaznost;
-int osvetljenost;
+int zelenaTemp; // želena Temparatura
+int zelenaVlaz; // želena vlaznost
+int zelenaOsv; // želena osvetljenost
+int trenutnaTemp;
+int trenutnaVlaz;
+int trenutnaOsv;
 int izbiraNacina;
 
 void prelom() {
@@ -20,26 +20,47 @@ void prelom() {
 }
 
 
-void vnesiVrednosti() {
-	cout << "Vnesi zeljeno: ";
+void vnesiZeleneLastnosti() {
+	cout << "Vnesi zeleno: ";
 	cout << "\nTemperaturo: ";
-	cin >> temperatura;
+	cin >> zelenaTemp;
 	cout << "\nVlaznost: ";
-	cin >> vlaznost;
+	cin >> zelenaVlaz;
 	cout << "\nOsvetljenost :";
-	cin >> osvetljenost;
+	cin >> zelenaOsv;
+}
+
+void vnesiTrenutneLastnosti() {
+	cout << "Vnesi trenutne lastnosti\n";
+	cout << "\tTemperatura[C, K in F]: "; // simbol za stopinje ne dela v cmd-ju
+	cin >> trenutnaTemp;
+	cout << endl;
+	cout << "\tVlaznost[%]: ";
+	cin >> trenutnaVlaz;
+	cout << endl;
+	cout << "\tOsvetljenost[lx]: ";
+	cin >> trenutnaOsv;
+	cout << endl;
+}
+
+void glavniMeni() {
+	cout << "GLAVNI MENI" << endl;
+	cout << "===========" << endl;
+	cout << "1.) Rocni nacin\n" << "2.) Avtomatski nacin\n" << "3.) Avtomatski nacin 2\n" << "4.) Pomoc\n" << "0.) Izhod" << endl;
 }
 
 
 int main(int argc, char* argv[])
 {
-	vnesiVrednosti();
+	cout << "Regulator, verzija 0.1\n";
+	prelom();
+	vnesiZeleneLastnosti();
 	prelom();
 
 	ofstream mojaDatOut;
 	mojaDatOut.open("Zeljene_ambientalne_lastnosti.txt");
 	if (mojaDatOut.is_open()) {
-		mojaDatOut << "TEMPERATURA: " << temperatura << " °C, K, °F\nVLAZNOST: " << vlaznost << " %\nOSVETLJENOST: " << osvetljenost << " lx\n";
+		mojaDatOut << "TEMPERATURA: " << zelenaTemp << " °C, K, °F\nVLAZNOST: " << zelenaVlaz << " %\nOSVETLJENOST: " << zelenaOsv << " lx\n";
 		mojaDatOut << "\nINTERVAL TEMPERATURE: °C\nSTOPNJA VLAZNOSTI: %\nINTERVAL OSVETLJENOSTI: lx";
 		mojaDatOut.close();
 	}
@@ -51,7 +72,7 @@ int main(int argc, char* argv[])
 	ifstream mojaDatIn;
 	mojaDatIn.open("Zeljene_ambientalne_lastnosti.txt");
 	if (mojaDatIn.is_open()) {
-		cout << "Ambientalne lastnosti bodo prilagojene na: \nTemperatura: " << temperatura << "\nVlaznost: " << vlaznost << "\nOsvetljenost: " << osvetljenost << "\n";
+		cout << "Ambientalne lastnosti bodo prilagojene na: \nTemperatura: " << zelenaTemp << "\nVlaznost: " << zelenaVlaz << "\nOsvetljenost: " << zelenaOsv << "\n";
 		mojaDatIn.close();
 	}
 	else
@@ -59,22 +80,20 @@ int main(int argc, char* argv[])
 		cout << "Napaka pri branju";
 		return 0;
 	}
-	
+
 	prelom();
 
 	if (argc == 1) {
-		cout << "Izberi nacin 1, 2 ali 3: \n";
-		cout << "Izbira: ";
+		glavniMeni();
 		cin >> izbiraNacina;
 
-		while (izbiraNacina != 1 && izbiraNacina != 2 && izbiraNacina != 3) {
-				cout << "Izberi nacin 1, 2 ali 3: \n";
-				cout << "Izbira: ";
-				cin >> izbiraNacina;
+		while (izbiraNacina != 0 && izbiraNacina != 1 && izbiraNacina != 2 && izbiraNacina != 3) {
+			glavniMeni();
+			cin >> izbiraNacina;
 		}
 
 		if (izbiraNacina == 1) {
-			cout << "1111";
+			vnesiTrenutneLastnosti();
 		}
 		else if (izbiraNacina == 2) {
 			cout << "2222";
@@ -82,15 +101,18 @@ int main(int argc, char* argv[])
 		else if (izbiraNacina == 3) {
 			cout << "3333";
 		}
+		else if (izbiraNacina == 0) {
+			return 0;
+		}
 
 
 
 
 		return 0;
-	
+
 	}
 	else if ((argc == 2) && (strcmp(argv[1], "-t") == 0)) {
-		
+
 
 		return 0;
 	}
