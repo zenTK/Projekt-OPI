@@ -14,11 +14,17 @@ int trenutnaTemp;
 int trenutnaVlaz;
 int trenutnaOsv;
 int izbiraNacina;
+int zelenaCelzij;
+int zelenaFahrenheit;
+int zelenaKelvin;
+int trenutnaCelzij;
+int trenutnaFahrenheit;
+int trenutnaKelvin;
+
 
 void prelom() {
 	cout << "----------------------------------------------------------------------------------- \n";
 }
-
 
 void vnesiZeleneLastnosti() {
 	cout << "Vnesi zeleno: ";
@@ -28,6 +34,23 @@ void vnesiZeleneLastnosti() {
 	cin >> zelenaVlaz;
 	cout << "\nOsvetljenost :";
 	cin >> zelenaOsv;
+
+	/*while (!(zelenaTemp >= 10) && !(zelenaTemp <= 30) && !(zelenaTemp > 30) && !(zelenaTemp <= 90) && !(zelenaTemp >= 283) && !(zelenaTemp <= 303)) {
+		cout << "Izberi temparaturo med 10 C in 30C, 31F in 90F ali 283 K in 303K";
+		cin >> zelenaTemp;
+	}*/
+
+	if (zelenaTemp <= 30 && zelenaTemp >= 10) {
+		zelenaCelzij = zelenaTemp;
+	}
+	else if (zelenaTemp > 30 && zelenaTemp <= 90) {
+		zelenaFahrenheit = zelenaTemp;
+		zelenaFahrenheit = zelenaFahrenheit * 1.8 + 32;
+		cout << zelenaFahrenheit;
+	}
+	else if (zelenaTemp >= 283 && zelenaTemp <= 303) {
+		zelenaKelvin = zelenaTemp;
+	}
 }
 
 void vnesiTrenutneLastnosti() {
@@ -41,6 +64,18 @@ void vnesiTrenutneLastnosti() {
 	cout << "\tOsvetljenost[lx]: ";
 	cin >> trenutnaOsv;
 	cout << endl;
+
+	if (trenutnaTemp <= 30 && trenutnaTemp >= 10) {
+		trenutnaTemp = trenutnaCelzij;
+	}
+	else if (trenutnaTemp > 30 && trenutnaTemp <= 90) {
+		trenutnaTemp = trenutnaFahrenheit;
+		trenutnaFahrenheit = trenutnaFahrenheit * 1.8 + 32;
+	}
+	else if (trenutnaTemp >= 283 && trenutnaTemp <= 303) {
+		trenutnaTemp = trenutnaKelvin;
+		trenutnaKelvin += 273.15;
+	}
 }
 
 void glavniMeni() {
