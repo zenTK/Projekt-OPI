@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <cstring>
+#include <cmath>
 
 using namespace std;
 
@@ -20,20 +21,78 @@ int zelenaKelvin;
 int trenutnaCelzij;
 int trenutnaFahrenheit;
 int trenutnaKelvin;
+string c = "[C]";
+string f = "[F]";
+string k = "[K]";
 
 
 void prelom() {
 	cout << "----------------------------------------------------------------------------------- \n";
 }
 
+void enotaZelenaTemp() {
+	if (zelenaTemp <= 30 && zelenaTemp >= 10) {
+		cout << c;
+	}
+	else if (zelenaTemp > 30 && zelenaTemp <= 90) {
+		cout << f;
+	}
+	else if (zelenaTemp >= 283 && zelenaTemp <= 303) {
+		cout << k;
+	}
+}
+
+void enotaTrenutnaTemp() {
+
+	if ((zelenaTemp <= 30 && zelenaTemp >= 10) && (trenutnaTemp >= 10 && trenutnaTemp <= 30)) { // Celzij
+	trenutnaTemp = trenutnaTemp;
+	cout << trenutnaTemp << c;
+	}
+	else if ((zelenaTemp <= 30 && zelenaTemp >= 10) && !(trenutnaTemp >= 10 && trenutnaTemp <= 30) && (trenutnaTemp >= 283 && trenutnaTemp <= 303)) { // Kelvin v Celzij
+		trenutnaTemp = trenutnaTemp - 273.13;
+		cout << trenutnaTemp << c;
+	}
+	else if ((zelenaTemp <= 30 && zelenaTemp >= 10) && !(trenutnaTemp >= 10 && trenutnaTemp <= 30) && (trenutnaTemp > 30 && trenutnaTemp <= 90)) { // Fahrenheit v Celzij
+		trenutnaTemp = (trenutnaTemp - 32) / 1.8;
+		cout << trenutnaTemp << c;
+	}
+	else if ((zelenaTemp > 30 && zelenaTemp <= 90) && (trenutnaTemp > 30 && trenutnaTemp <= 90)) { // Fahrenheit
+		trenutnaTemp = trenutnaTemp;
+		cout << trenutnaTemp << f;
+	}
+	else if ((zelenaTemp > 30 && zelenaTemp <= 90) && !(trenutnaTemp > 30 && trenutnaTemp <= 90) && (trenutnaTemp >= 283 && trenutnaTemp <= 303)) { // Kelvin v Fahrenheit
+		trenutnaTemp = trenutnaTemp * 1.8 - 459.67;
+		cout << trenutnaTemp << f;
+	}
+	else if ((zelenaTemp > 30 && zelenaTemp <= 90) && !(trenutnaTemp > 30 && trenutnaTemp <= 90) && (trenutnaTemp >= 10 && trenutnaTemp <= 30)) { // Celzij v Fahrenheit
+		trenutnaTemp = trenutnaTemp * 1.8 + 32;
+		cout << trenutnaTemp << f;
+	}
+	else if ((zelenaTemp >= 283 && zelenaTemp <= 303) && (trenutnaTemp >= 283 && trenutnaTemp <= 303)) { // Kelvin
+		trenutnaTemp = trenutnaTemp;
+		cout << trenutnaTemp << k;
+	}
+	else if ((zelenaTemp >= 283 && zelenaTemp <= 303) && !(trenutnaTemp >= 283 && trenutnaTemp <= 303) && (trenutnaTemp >= 10 && trenutnaTemp <= 30)) { // Celzij v Kelvin
+		trenutnaTemp = trenutnaTemp + 273.13;
+		cout << trenutnaTemp << k;
+	}
+	else if ((zelenaTemp >= 283 && zelenaTemp <= 303) && !(trenutnaTemp >= 283 && trenutnaTemp <= 303) && (trenutnaTemp > 30 && trenutnaTemp <= 90)) { // Fahrenheit v Kelvin
+		trenutnaTemp = (trenutnaTemp + 459.67) * 5 / 9;
+		cout << trenutnaTemp << k;
+	}
+}
+
 void vnesiZeleneLastnosti() {
 	cout << "Vnesi zeleno: ";
-	cout << "\nTemperaturo: ";
+	cout << "\nTemperaturo[C, K in F]: ";
 	cin >> zelenaTemp;
-	cout << "\nVlaznost: ";
+	enotaZelenaTemp();
+	cout << "\nVlaznost[%]: ";
 	cin >> zelenaVlaz;
-	cout << "\nOsvetljenost :";
+	cout << "[%]";
+	cout << "\nOsvetljenost[lx]:";
 	cin >> zelenaOsv;
+	cout << "[lx]\n";
 
 	while ((zelenaTemp < 10) || ((zelenaTemp > 90) && (zelenaTemp < 283)) || (zelenaTemp > 303)) {
 		cout << "Izberi temparaturo med 10 C in 30C, 31F in 90F ali 283 K in 303K\n";
@@ -46,8 +105,6 @@ void vnesiZeleneLastnosti() {
 	}
 	else if (zelenaTemp > 30 && zelenaTemp <= 90) {
 		zelenaFahrenheit = zelenaTemp;
-		zelenaFahrenheit = zelenaFahrenheit * 1.8 + 32;
-		cout << zelenaFahrenheit;
 	}
 	else if (zelenaTemp >= 283 && zelenaTemp <= 303) {
 		zelenaKelvin = zelenaTemp;
@@ -59,6 +116,7 @@ void vnesiTrenutneLastnosti() {
 	cout << "Vnesi trenutne lastnosti\n";
 	cout << "\tTemperatura[C, K in F]: "; // simbol za stopinje ne dela v cmd-ju
 	cin >> trenutnaTemp;
+	enotaTrenutnaTemp();
 	cout << endl;
 	cout << "\tVlaznost[%]: ";
 	cin >> trenutnaVlaz;
@@ -70,17 +128,7 @@ void vnesiTrenutneLastnosti() {
 	while ((trenutnaTemp < 10) || ((trenutnaTemp > 90) && (trenutnaTemp < 283)) || (trenutnaTemp > 303)) {
 		cout << "Izberi temparaturo med 10 C in 30C, 31F in 90F ali 283 K in 303K\n";
 		cout << "Temperatura: ";
-		cin >> zelenaTemp;
-	}
-
-	if (trenutnaTemp <= 30 && trenutnaTemp >= 10) {
-		trenutnaCelzij = trenutnaTemp;
-	}
-	else if (trenutnaTemp > 30 && trenutnaTemp <= 90) {
-		trenutnaFahrenheit = trenutnaTemp;
-	}
-	else if (trenutnaTemp >= 283 && trenutnaTemp <= 303) {
-		trenutnaKelvin = trenutnaCelzij;
+		cin >> trenutnaTemp;
 	}
 }
 
@@ -107,8 +155,8 @@ void datoteka() {
 			mojaDatOut << "[K]";
 		}
 
-		mojaDatOut << "\nVLAZNOST[%]: " << zelenaVlaz << " %\nOSVETLJENOST[lx]: " << zelenaOsv << " lx\n";
-		mojaDatOut << "\nINTERVAL TEMPERATURE: �C\nSTOPNJA VLAZNOSTI: %\nINTERVAL OSVETLJENOSTI: lx";
+		mojaDatOut << "\nVLAZNOST[%]: " << zelenaVlaz << "[%]\nOSVETLJENOST[lx]: " << zelenaOsv << "[lx]\n";
+		mojaDatOut << "\nINTERVAL TEMPERATURE: [10,40] [C]\nSTOPNJA VLAZNOSTI: [30,60] [%]\nINTERVAL OSVETLJENOSTI: [10,1000] [lx]";
 		mojaDatOut.close();
 	}
 	else {
@@ -118,7 +166,10 @@ void datoteka() {
 	ifstream mojaDatIn;
 	mojaDatIn.open("Zeljene_ambientalne_lastnosti.txt");
 	if (mojaDatIn.is_open()) {
-		cout << "Ambientalne lastnosti bodo prilagojene na: \nTemperatura: " << zelenaTemp << "\nVlaznost: " << zelenaVlaz << "\nOsvetljenost: " << zelenaOsv << "\n";
+		cout << "Ambientalne lastnosti bodo prilagojene na: \nTemperatura: " << zelenaTemp;
+		enotaZelenaTemp();
+		cout << "\nVlaznost: " << zelenaVlaz << "[%]";
+		cout << "\nOsvetljenost: " << zelenaOsv << "[lx]\n";
 		mojaDatIn.close();
 	}
 	else
