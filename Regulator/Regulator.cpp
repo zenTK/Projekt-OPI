@@ -8,13 +8,15 @@
 
 using namespace std;
 
-int zelenaTemp; // �elena Temparatura
-int zelenaVlaz; // �elena vlaznost
-int zelenaOsv; // �elena osvetljenost
+int zelenaTemp; // zelena Temparatura
+int zelenaVlaz; // zelena vlaznost
+int zelenaOsv = 500; // zelena osvetljenost
 int trenutnaTemp;
 int trenutnaVlaz;
 int trenutnaOsv;
 int izbiraNacina;
+int izbiraNacinaTestni;
+int izbiraTestniRocni;
 int zelenaCelzij;
 int zelenaFahrenheit;
 int zelenaKelvin;
@@ -33,10 +35,10 @@ void prelom() {
 }
 
 void prekinitevSimulacije() {
-	cout << "Želite nadaljevati s simulacijo?\n";
+	cout << "Zelite nadaljevati s simulacijo?\n";
 	cout << "Za nadaljevanje simulacije pritisnite 1 \nZa prekinitev simulacije pritisnite 2\n";
 	cin >> nadaljevanjeSim;
-	
+
 	while (nadaljevanjeSim != 1 && nadaljevanjeSim != 2) {
 		cout << "Za nadaljevanje simulacije pritisnite 1 \nZa prekinitev simulacije pritisnite 2\n";
 		cin >> nadaljevanjeSim;
@@ -66,8 +68,8 @@ void enotaZelenaTemp() {
 void enotaTrenutnaTemp() {
 
 	if ((zelenaTemp <= 30 && zelenaTemp >= 10) && (trenutnaTemp >= 10 && trenutnaTemp <= 30)) { // Celzij
-	trenutnaTemp = trenutnaTemp;
-	cout << trenutnaTemp << c << endl;
+		trenutnaTemp = trenutnaTemp;
+		cout << trenutnaTemp << c << endl;
 	}
 	else if ((zelenaTemp <= 30 && zelenaTemp >= 10) && !(trenutnaTemp >= 10 && trenutnaTemp <= 30) && (trenutnaTemp >= 283 && trenutnaTemp <= 303)) { // Kelvin v Celzij
 		trenutnaTemp = trenutnaTemp - 273.13;
@@ -110,10 +112,7 @@ void vnesiZeleneLastnosti() {
 	enotaZelenaTemp();
 	cout << "\nVlaznost[%]: ";
 	cin >> zelenaVlaz;
-	cout << "[%]";
-	cout << "\nOsvetljenost[lx]:";
-	cin >> zelenaOsv;
-	cout << "[lx]\n";
+	cout << "[%]\n";
 
 	while ((zelenaTemp < 10) || ((zelenaTemp > 90) && (zelenaTemp < 283)) || (zelenaTemp > 303)) {
 		cout << "Izberi temparaturo med 10 C in 30C, 31F in 90F ali 283 K in 303K\n";
@@ -159,6 +158,18 @@ void glavniMeni() {
 	cout << "GLAVNI MENI" << endl;
 	cout << "===========" << endl;
 	cout << "1.) Rocni nacin\n" << "2.) Avtomatski nacin\n" << "3.) Avtomatski nacin 2\n" << "4.) Pomoc\n" << "0.) Izhod" << endl;
+}
+
+void glavniMeniTestniNacin() {
+	cout << "Kateri rezim zelis testirati?" << endl;
+	cout << "====================" << endl;
+	cout << "1.) Rocni nacin\n" << "2.) Avtomatski nacin\n" << "3.) Avtomatski nacin 2\n";
+}
+
+void meniTestniRocni() {
+	cout << "Katero lastnost zelis testirat?\n";
+	cout << "===============================\n";
+	cout << "1.) Temperaturo\n" << "2.) Vlaznost\n" << "3.) Osvetljenost\n";
 }
 
 void datoteka() {
@@ -236,11 +247,35 @@ void ukazZaRegulacijoVlaz() {
 
 void vnesiTrenutnoOsv() {
 	cout << "Vnesi trenutno osvetljenost:\n";
-	cout << "\tTemperatura[lx]: \n";
+	cout << "\tOsvetljenost[lx]: \n";
 	cin >> trenutnaOsv;
+
+	while (trenutnaOsv < 10) {
+		cout << "Vnesi vrednost vecjo ali enako 10, saj nisi v temi :)" << endl;
+		cin >> trenutnaOsv;
+	}
 }
 
-int main(int argc, char* argv[])
+void ukazZaRegulacijoOsv() {
+	
+	if (trenutnaOsv >= 8000) {
+		cout << "Izklop luci in zatemnitev rolet" << endl;
+	}
+	else if ((trenutnaOsv > 500) && (trenutnaOsv < 8000)) {
+		cout << "Izklop luci" << endl;
+	}
+	else if ((trenutnaOsv > 100) && (trenutnaOsv < 500)) {
+		cout << "Prizig luci" << endl;
+	}
+	else if ((trenutnaOsv >= 10) && (trenutnaOsv <= 100)) {
+		cout << "Prizig luci in odprtje rolet" << endl;
+	}
+	else if (trenutnaOsv == 500) {
+		cout << "Osvetljenost prostora je optimalna" << endl;
+	}
+}
+
+int main(int argc, char* argv[]) // MAIN
 {
 	cout << "Regulator, verzija 0.1\n";
 	prelom();
@@ -271,19 +306,38 @@ int main(int argc, char* argv[])
 			return 0;
 		}
 
-
-
-
 		return 0;
 
 	}
 	else if ((argc == 2) && (strcmp(argv[1], "-t") == 0)) {
 		cout << "\t\nPOZDRAVLJEN/A V TESTNEM NACINU\n";
 		while (dela) {
-			vnesiTrenutnoTemp();
-			ukazZaRegulacijoTemp();
-			vnesiTrenutnoVlaznost();
-			ukazZaRegulacijoVlaz();
+			glavniMeniTestniNacin();
+			cin >> izbiraNacinaTestni;
+			while (izbiraNacinaTestni != 1 && izbiraNacinaTestni != 2 && izbiraNacinaTestni != 3) {
+				glavniMeniTestniNacin();
+				cin >> izbiraNacinaTestni;
+			}
+			if(izbiraNacinaTestni == 1){
+				meniTestniRocni();
+				cin >> izbiraTestniRocni;
+				while (izbiraTestniRocni != 1 && izbiraTestniRocni != 2 && izbiraTestniRocni != 3) {
+					meniTestniRocni();
+					cin >> izbiraTestniRocni;
+				}
+				if (izbiraTestniRocni == 1) {
+					vnesiTrenutnoTemp();
+					ukazZaRegulacijoTemp();
+				}
+				else if (izbiraTestniRocni == 2) {
+					vnesiTrenutnoVlaznost();
+					ukazZaRegulacijoVlaz();
+				}
+				else if (izbiraTestniRocni == 3) {
+					vnesiTrenutnoOsv();
+					ukazZaRegulacijoOsv();
+				}
+			}
 			prekinitevSimulacije();
 		}
 		return 0;
