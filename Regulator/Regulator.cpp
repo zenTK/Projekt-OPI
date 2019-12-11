@@ -35,6 +35,7 @@ void prelom() {
 }
 
 void prekinitevSimulacije() {
+	prelom();
 	cout << "Zelite nadaljevati s simulacijo?\n";
 	cout << "Za nadaljevanje simulacije pritisnite 1 \nZa prekinitev simulacije pritisnite 2\n";
 	cin >> nadaljevanjeSim;
@@ -226,6 +227,10 @@ void ukazZaRegulacijoTemp() {
 	else {
 		cout << "Temperatura v prostoru je optimalna\n";
 	}
+
+	if ((trenutnaTemp - zelenaTemp) >= 10) {
+		trenutnaVlaz = trenutnaVlaz * 1.05;
+	}
 }
 
 void vnesiTrenutnoVlaznost() {
@@ -257,7 +262,7 @@ void vnesiTrenutnoOsv() {
 }
 
 void ukazZaRegulacijoOsv() {
-	
+
 	if (trenutnaOsv >= 8000) {
 		cout << "Izklop luci in zatemnitev rolet" << endl;
 	}
@@ -295,6 +300,9 @@ int main(int argc, char* argv[]) // MAIN
 
 		if (izbiraNacina == 1) {
 			vnesiTrenutneLastnosti();
+			ukazZaRegulacijoTemp();
+			ukazZaRegulacijoVlaz();
+			ukazZaRegulacijoOsv();
 		}
 		else if (izbiraNacina == 2) {
 			cout << "2222";
@@ -318,7 +326,7 @@ int main(int argc, char* argv[]) // MAIN
 				glavniMeniTestniNacin();
 				cin >> izbiraNacinaTestni;
 			}
-			if(izbiraNacinaTestni == 1){
+			if (izbiraNacinaTestni == 1) {
 				meniTestniRocni();
 				cin >> izbiraTestniRocni;
 				while (izbiraTestniRocni != 1 && izbiraTestniRocni != 2 && izbiraTestniRocni != 3) {
