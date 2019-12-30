@@ -202,7 +202,6 @@ void vnesiTrenutneLastnosti()
         cout << "Izberi temparaturo med 10 C in 40C, 41F in 110F ali 293K in 313K\n";
         cout << "Temperatura: ";
         cin >> trenutnaTemp;
-        enotaTrenutnaTemp();
     }
 
     enotaTrenutnaTemp();
@@ -225,12 +224,12 @@ void vnesiTrenutneLastnosti()
     cin >> trenutnaOsv;
     cout << endl;
 
-    while (cin.fail() || trenutnaOsv <= 10)
+    while (cin.fail() || trenutnaOsv <= 10 || trenutnaOsv > 10000)
     {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Vnesi moc osvetljenosti vecjo ali enako 10 \n";
-        cout << "Osvetljenost: ";
+        cout << "Vnesi moc osvetljenosti vecjo ali enako 10 in manjso od 10000 \n\n";
+        cout << "Osvetljenost[lx]: ";
         cin >> trenutnaOsv;
     }
 }
@@ -312,12 +311,10 @@ void datoteka()
             int index = sLine.find_first_of("[");
             stevilo1 = sLine.substr(index + 1, 2);
             tempSpodnjaMeja = stoi(stevilo1);
-            cout << tempSpodnjaMeja << endl;
 
             int index1 = sLine.find_first_of(",");
             stevilo2 = sLine.substr(index1 + 1, 2);
             tempZgornjaMeja = stoi(stevilo2);
-            cout << tempZgornjaMeja << endl;
         }
         else
         {
@@ -334,12 +331,10 @@ void datoteka()
             int index2 = sLine.find_first_of("[");
             stevilo3 = sLine.substr(index2 + 1, 2);
             vlazSpodnjaMeja = stoi(stevilo3);
-            cout << stevilo3 << endl;
 
             int index3 = sLine.find_first_of(",");
             stevilo4 = sLine.substr(index3 + 1, 2);
             vlazZgornjaMeja = stoi(stevilo4);
-            cout << stevilo4 << endl;
         }
         else
         {
@@ -355,12 +350,10 @@ void datoteka()
             int index4 = sLine.find_first_of("[");
             stevilo5 = sLine.substr(index4 + 1, 2);
             osvSpodnjaMeja = stoi(stevilo5);
-            cout << stevilo5 << endl;
 
             int index5 = sLine.find_first_of(",");
             stevilo6 = sLine.substr(index5 + 1, 5); // pri vseh še treba spremenit dolžino branja glede na dolžino stevila v datoteki
             osvZgornjaMeja = stoi(stevilo6);
-            cout << stevilo6 << endl;
         }
         else
         {
@@ -381,8 +374,10 @@ void vnesiTrenutnoTemp()
     cout << "\tTemperatura[C, K in F]: \n";
     cin >> trenutnaTemp;
     enotaTrenutnaTemp();
-    while ((trenutnaTemp < 10) || ((trenutnaTemp > 110) && (trenutnaTemp < 283)) || (trenutnaTemp > 313))
+    while ((cin.fail() || trenutnaTemp < 10) || ((trenutnaTemp > 110) && (trenutnaTemp < 283)) || (trenutnaTemp > 313))
     {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
         cout << "Izberi temparaturo med 10 C in 30C, 31F in 90F ali 283 K in 303K\n";
         cout << "Temperatura: ";
         cin >> trenutnaTemp;
@@ -420,6 +415,14 @@ void vnesiTrenutnoVlaznost()
     cout << "\nVnesi trenutno vlaznost\n";
     cout << "Vlaznost[%]:\n";
     cin >> trenutnaVlaz;
+    while (cin.fail() || trenutnaVlaz < 0 || trenutnaVlaz > 100)
+    {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Vnesi stopnjo vlaznosti med 0 in 100: \n";
+        cout << "Vlaznost: ";
+        cin >> trenutnaVlaz;
+    }
 }
 
 void ukazZaRegulacijoVlaz()
@@ -444,9 +447,12 @@ void vnesiTrenutnoOsv()
     cout << "\tOsvetljenost[lx]: \n";
     cin >> trenutnaOsv;
 
-    while (trenutnaOsv < 10)
+    while (cin.fail() || trenutnaOsv <= 10 || trenutnaOsv > 10000)
     {
-        cout << "Vnesi vrednost vecjo ali enako 10, saj nisi v temi :)" << endl;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Vnesi moc osvetljenosti vecjo ali enako 10 in manjso od 10000 \n\n";
+        cout << "Osvetljenost[lx]: ";
         cin >> trenutnaOsv;
     }
 }
@@ -480,7 +486,7 @@ void avtomatskiNacin()
 {
     srand(time(NULL)); // naključen seed
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 100; i++)
     {
 
         int intervalTemp = tempZgornjaMeja - tempSpodnjaMeja + 1;
@@ -510,11 +516,23 @@ void avtomatskiNacin()
         ukazZaRegulacijoOsv();
         prelom();
         povpVrednost += trenutnaTemp;
-        //  Sleep(3000); // ponovitev zanke vsake 3 sekunde
+        // Sleep(3000); // ponovitev zanke vsake 3 sekunde (odkomentiraj, če želiš po eno simluacijo na 3 sekunde)
     }
     povpVrednost = povpVrednost / 4;
     cout << "Povprecna vrednost dejanske temperature: ";
     cout << povpVrednost;
+    if ((povpVrednost >= 10) && (povpVrednost <= 40))
+    {
+        cout << "[C]";
+    }
+    else if ((povpVrednost > 40) && (povpVrednost <= 110))
+    {
+        cout << "[F]";
+    }
+    else if ((povpVrednost >= 283) && (povpVrednost <= 313))
+    {
+        cout << "[K]";
+    }
     povpVrednost = 0; // reset na 0, da se v ponovnem zagonu funkcije ne sestevajo še stare vrednosti
 }
 
@@ -522,8 +540,22 @@ void avtomatskiNacin2()
 {
     cout << "Koliko ponovitev naj naredi simulator? " << endl;
     cin >> stPonovitev;
+    while (cin.fail() || stPonovitev < 1 || stPonovitev > 5000)
+    {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Izberi stevilo ponovetev med 1 in 5000: \n\n";
+        cin >> stPonovitev;
+    }
     cout << "Koliko naj bo casovni razmik(milisekunde) med ponovitvami? " << endl;
     cin >> casovniRazmik;
+    while (cin.fail() || casovniRazmik < 1)
+    {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Izberi casovni razmik daljsi kot 1 milisekundo: \n\n";
+        cin >> casovniRazmik;
+    }
 
     srand(time(NULL)); // naključen seed
 
@@ -569,6 +601,13 @@ void avtomatskiTestniNacin()
 {
     cout << "Izberi seed za ponovljivost simulacij: " << endl;
     cin >> seed;
+    while (cin.fail() || seed < 1)
+    {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Izberi seed vecji kot 1: \n";
+        cin >> seed;
+    }
     srand(seed); // generiral bo vedno iste ambientalne lastnosti za izbran seed
 
     for (int i = 0; i < 4; i++)
@@ -609,13 +648,19 @@ void avtomatskiTestniNacin()
     povpVrednost = 0; // reset na 0, da se v ponovnem zagonu funkcije ne sestevajo še stare vrednosti
 }
 
-
 int main(int argc, char *argv[]) // MAIN
 {
     cout << "Regulator, verzija 0.1\n";
     prelom();
     cout << "Vnesite ime datoteke v katero bodo shranjene lastnosti: \n";
     cin >> imeDat;
+    while (cin.fail())
+    {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Vnesite ime datoteke v katero bodo shranjene lastnosti: \n";
+        cin >> imeDat;
+    }
     imeDat += ".txt";
 
     vnesiZeleneLastnosti();
