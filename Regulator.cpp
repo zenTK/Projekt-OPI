@@ -676,8 +676,10 @@ int main(int argc, char *argv[]) // MAIN
             glavniMeni();
             cin >> izbiraNacina;
 
-            while (izbiraNacina != 0 && izbiraNacina != 1 && izbiraNacina != 2 && izbiraNacina != 3)
+            while (cin.fail() || izbiraNacina != 0 && izbiraNacina != 1 && izbiraNacina != 2 && izbiraNacina != 3)
             {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
                 glavniMeni();
                 cin >> izbiraNacina;
             }
@@ -713,11 +715,15 @@ int main(int argc, char *argv[]) // MAIN
         {
             glavniMeniTestniNacin();
             cin >> izbiraNacinaTestni;
-            while (izbiraNacinaTestni != 1 && izbiraNacinaTestni != 2 && izbiraNacinaTestni != 3)
+
+            while (cin.fail() || izbiraNacinaTestni != 1 && izbiraNacinaTestni != 2 && izbiraNacinaTestni != 3)
             {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
                 glavniMeniTestniNacin();
                 cin >> izbiraNacinaTestni;
             }
+
             if (izbiraNacinaTestni == 1)
             {
                 meniTestniRocni();
@@ -747,9 +753,20 @@ int main(int argc, char *argv[]) // MAIN
             else if (izbiraNacinaTestni == 2)
             {
                 avtomatskiTestniNacin();
+                
+            }
+            else if (izbiraNacinaTestni == 3)
+            {
+                avtomatskiNacin2();
             }
             prekinitevSimulacije();
         }
+        return 0;
+    }else
+    {
+        cout << "Za zagon programa v navadnem načinu napiši 'main'" << endl; // TO FAILA
+        cout << "Za zagon programa v testnem nacinu napisi 'main -t'" << endl;
+        return 0;
     }
-    return 0;
+    
 }
