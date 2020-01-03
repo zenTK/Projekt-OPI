@@ -11,8 +11,26 @@
 #include <stdlib.h>  // srand, rand
 #include <time.h>    // time
 #include <windows.h> // sleep
+#include <cmath>     // abs
 
 using namespace std;
+
+/* REGULATOR 
+ * Regulator.cpp je program, ki omogoča reguliranje temperature, vlažnosti in osvetljenosti v prostoru.
+ * Na začetku uporabnik vnese želene ambientalne lastnosti, ki se vpišejo v tekstovno datoteko.
+ * Program omogoča tri načine delovanja: Ročni, Avtomatski in Avtomatski 2.
+ * V ročnem načinu uporabnik vnese dejansko temperaturo v prostoru. Program omogoča prepoznavo in pretvorbo merske enote
+ * z enoto želene temperature. Izračuna tudi razliko do želene temperature ter izvede ukaz za regulacijo.
+ * V avtomatskem načinu si računalnik izmisli dejanske lastnosti glede na intervalu podanem v datoteki.
+ * Izvede 100 meritev vsake 3 sekunde. Na koncu še izračuna povprečno vrednost dejanskih ambientalnih lastnosti ter
+ * povprečno odstopanje od želenih vrednosti.
+ * V avtomatskem 2 simulator naredi isto kot pri avtomatskem načinu, vendar omogoča uporabniku izbiro
+ * pri številu meritev in časovnem razmiku med posamezno meritvijo.
+ * 
+ * Možen je tudi zagon v testnem načinu.
+ * Testni ročni način omogoča posamičen zagon ukaza za regulacij(npr. samo za temperaturo)
+ * Testni avtomatski način pa omogoča izbiro "seed-a", kar pomeni, da je možna ponovljivost simulacij.
+*/
 
 int zelenaTemp;      // zelena Temparatura
 int zelenaVlaz;      // zelena vlaznost
@@ -31,10 +49,18 @@ int vlazSpodnjaMeja;
 int vlazZgornjaMeja;
 int osvSpodnjaMeja;
 int osvZgornjaMeja;
-int povpVrednost = 0;
+int povpVrednostTemp = 0;
+int povpVrednostVlaz = 0;
+int povpVrednostOsv = 0;
 int stPonovitev = 0;
 int casovniRazmik;
 int seed;
+int razlikaTemp;
+int razlikaVlaz;
+int razlikaOsv;
+int sumTemp;
+int sumVlaz;
+int sumOsv;
 string c = "[C]";
 string f = "[F]";
 string k = "[K]";
@@ -54,15 +80,17 @@ void prelom()
     cout << "\n----------------------------------------------------------------------------------- \n";
 }
 
-void prekinitevSimulacije()
+void prekinitevSimulacije() // vprasa za prekinitev simulacije ali za nadaljevanje
 {
     prelom();
     cout << "Zelite nadaljevati s simulacijo?\n";
     cout << "Za nadaljevanje simulacije pritisnite 1 \nZa prekinitev simulacije pritisnite 2\n";
     cin >> nadaljevanjeSim;
 
-    while (nadaljevanjeSim != 1 && nadaljevanjeSim != 2)
+    while (cin.fail() || nadaljevanjeSim != 1 && nadaljevanjeSim != 2)
     {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
         cout << "Za nadaljevanje simulacije pritisnite 1 \nZa prekinitev simulacije pritisnite 2\n";
         cin >> nadaljevanjeSim;
     }
@@ -78,7 +106,7 @@ void prekinitevSimulacije()
     }
 }
 
-void enotaZelenaTemp()
+void enotaZelenaTemp() // glede na vneseno zeleno temperaturo doda enoto
 {
     if (zelenaTemp <= 40 && zelenaTemp >= 10)
     {
@@ -94,7 +122,7 @@ void enotaZelenaTemp()
     }
 }
 
-void enotaTrenutnaTemp()
+void enotaTrenutnaTemp() // glede na vneseno trenutno temperaturo pretvori v enoto, ki se sklada s enoto zelene temperature
 {
 
     if ((zelenaTemp <= 40 && zelenaTemp >= 10) && (trenutnaTemp >= 10 && trenutnaTemp <= 40))
@@ -144,7 +172,7 @@ void enotaTrenutnaTemp()
     }
 }
 
-void vnesiZeleneLastnosti()
+void vnesiZeleneLastnosti() // vnos zelene temperature
 {
     cout << "Vnesi zeleno: ";
     cout << "\nTemperaturo[C, K in F]: ";
@@ -189,7 +217,7 @@ void vnesiZeleneLastnosti()
     }
 }
 
-void vnesiTrenutneLastnosti()
+void vnesiTrenutneLastnosti() // vnos dejanskih ambientalnih lastnosti
 {
     cout << "Vnesi trenutne lastnosti\n";
     cout << "Temperatura[C, K in F]: "; // simbol za stopinje ne dela v cmd-ju
@@ -209,7 +237,7 @@ void vnesiTrenutneLastnosti()
     cout << endl;
     cout << "Vlaznost[%]: ";
     cin >> trenutnaVlaz;
-    cout << endl;
+    cout << "[%]" << endl;
 
     while (cin.fail() || trenutnaVlaz < 0 || trenutnaVlaz > 100)
     {
@@ -222,7 +250,7 @@ void vnesiTrenutneLastnosti()
 
     cout << "Osvetljenost[lx]: ";
     cin >> trenutnaOsv;
-    cout << endl;
+    cout << "[lx]" << endl;
 
     while (cin.fail() || trenutnaOsv <= 10 || trenutnaOsv > 10000)
     {
@@ -250,8 +278,7 @@ void glavniMeniTestniNacin()
     cout << "Kateri rezim zelis testirati?" << endl;
     cout << "====================" << endl;
     cout << "1.) Rocni nacin\n"
-         << "2.) Avtomatski nacin\n"
-         << "3.) Avtomatski nacin 2\n";
+         << "2.) Avtomatski nacin\n";
 }
 
 void meniTestniRocni()
@@ -263,7 +290,7 @@ void meniTestniRocni()
          << "3.) Osvetljenost\n";
 }
 
-void datoteka()
+void datoteka() // pisanje in branje lastnosti v glavno datoteko
 {
     ofstream mojaDatOut;
     mojaDatOut.open(imeDat.c_str());
@@ -301,7 +328,7 @@ void datoteka()
         cout << "\nVlaznost: " << zelenaVlaz << "[%]";
         cout << "\nOsvetljenost: " << zelenaOsv << "[lx]\n";
 
-        while (line_no != 5 && getline(mojaDatIn, sLine))
+        while (line_no != 5 && getline(mojaDatIn, sLine)) // branje 5 linije v datoteki
         {
             ++line_no;
         }
@@ -321,7 +348,7 @@ void datoteka()
             cout << "umri";
         }
 
-        while (line_no != 6 && getline(mojaDatIn, sLine))
+        while (line_no != 6 && getline(mojaDatIn, sLine)) // branje 6 linije v datoteki
         {
             ++line_no;
         }
@@ -340,7 +367,7 @@ void datoteka()
         {
             cout << "umri";
         }
-        while (line_no != 7 && getline(mojaDatIn, sLine))
+        while (line_no != 7 && getline(mojaDatIn, sLine)) // branje 7 linije v datoteki
         {
             ++line_no;
         }
@@ -368,7 +395,7 @@ void datoteka()
     }
 }
 
-void vnesiTrenutnoTemp()
+void vnesiTrenutnoTemp() // vnos trenutne temerature za testni nacin
 {
     cout << "Vnesi trenutno temperaturo:\n";
     cout << "\tTemperatura[C, K in F]: \n";
@@ -385,19 +412,19 @@ void vnesiTrenutnoTemp()
     }
 }
 
-void ukazZaRegulacijoTemp()
+void ukazZaRegulacijoTemp() // ukaz za regulacijo temerature za testni nacin
 {
     if ((zelenaTemp - trenutnaTemp) > 0)
     {
-        cout << "Vklop grelca\n";
+        cout << "\nVklop grelca\n";
     }
     else if ((zelenaTemp - trenutnaTemp) < 0)
     {
-        cout << "Izklop grelca\n";
+        cout << "\nIzklop grelca\n";
     }
     else
     {
-        cout << "Temperatura v prostoru je optimalna\n";
+        cout << "\nTemperatura v prostoru je optimalna\n";
     }
 
     if ((trenutnaTemp - zelenaTemp) >= 10)
@@ -410,7 +437,7 @@ void ukazZaRegulacijoTemp()
     }
 }
 
-void vnesiTrenutnoVlaznost()
+void vnesiTrenutnoVlaznost() // vnos trenutne vlaznosti za testni nacin
 {
     cout << "\nVnesi trenutno vlaznost\n";
     cout << "Vlaznost[%]:\n";
@@ -425,23 +452,23 @@ void vnesiTrenutnoVlaznost()
     }
 }
 
-void ukazZaRegulacijoVlaz()
+void ukazZaRegulacijoVlaz() // ukaz za regulacijo trenutne vlaznosti za testni nacin
 {
     if ((zelenaVlaz - trenutnaVlaz) > 0)
     {
-        cout << "Vklop vlazilca\n";
+        cout << "\nVklop vlazilca\n";
     }
     else if ((zelenaVlaz - trenutnaVlaz) < 0)
     {
-        cout << "Izklop vlazilca\n";
+        cout << "\nIzklop vlazilca\n";
     }
     else
     {
-        cout << "Vlaznost v prostoru je optimalna\n";
+        cout << "\nVlaznost v prostoru je optimalna\n";
     }
 }
 
-void vnesiTrenutnoOsv()
+void vnesiTrenutnoOsv() // vnos trenutne osvetljenosti za testni nacin
 {
     cout << "Vnesi trenutno osvetljenost:\n";
     cout << "\tOsvetljenost[lx]: \n";
@@ -451,38 +478,52 @@ void vnesiTrenutnoOsv()
     {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Vnesi moc osvetljenosti vecjo ali enako 10 in manjso od 10000 \n\n";
+        cout << "Vnesi moc osvetljenosti vecjo ali enako 10 in manjso od 10000 \n";
         cout << "Osvetljenost[lx]: ";
         cin >> trenutnaOsv;
     }
 }
 
-void ukazZaRegulacijoOsv()
+void ukazZaRegulacijoOsv() // ukaz za regulacijo trenutne vlaznosti za testni nacin
 {
 
     if (trenutnaOsv >= 8000)
     {
-        cout << "Izklop luci in zatemnitev rolet" << endl;
+        cout << "\nIzklop luci in zatemnitev rolet" << endl;
     }
     else if ((trenutnaOsv > 500) && (trenutnaOsv < 8000))
     {
-        cout << "Izklop luci" << endl;
+        cout << "\nIzklop luci" << endl;
     }
     else if ((trenutnaOsv > 100) && (trenutnaOsv < 500))
     {
-        cout << "Prizig luci" << endl;
+        cout << "\nPrizig luci" << endl;
     }
     else if ((trenutnaOsv >= 10) && (trenutnaOsv <= 100))
     {
-        cout << "Prizig luci in odprtje rolet" << endl;
+        cout << "\nPrizig luci in odprtje rolet" << endl;
     }
     else if (trenutnaOsv == 500)
     {
-        cout << "Osvetljenost prostora je optimalna" << endl;
+        cout << "\nOsvetljenost prostora je optimalna" << endl;
     }
 }
 
-void avtomatskiNacin()
+void razlikaDoZeleneLastnosti() // racunanje odstopanja med zeleno in dejansko temperaturo
+{
+    razlikaTemp = zelenaTemp - trenutnaTemp;
+    cout << "Odstopanje do zelene temperature: " << abs(razlikaTemp);
+    enotaZelenaTemp();
+
+    razlikaVlaz = zelenaVlaz - trenutnaVlaz;
+    cout << "\nOdstopanje do zelene vlaznosti: " << abs(razlikaVlaz) << "[%]" << endl;
+
+    razlikaOsv = zelenaOsv - trenutnaOsv;
+    cout << "Odstopanje do zelene osvetljenosti: " << abs(razlikaOsv) << "[lx]"
+         << "\n\n";
+}
+
+void avtomatskiNacin() // Avtomatski nacin
 {
     srand(time(NULL)); // naključen seed
 
@@ -507,36 +548,58 @@ void avtomatskiNacin()
         cout << "Trenutna temperatura: ";
         enotaTrenutnaTemp();
         cout << "Trenutna vlaznost: " << trenutnaVlaz << endl;
-        cout << "Trenutna osvetljenost: " << trenutnaOsv << endl;
+        cout << "Trenutna osvetljenost: " << trenutnaOsv << "\n\n";
 
-        cout << endl;
+        razlikaDoZeleneLastnosti();
+
+        sumTemp += razlikaTemp;
+        sumVlaz += razlikaVlaz;
+        sumOsv += razlikaOsv;
 
         ukazZaRegulacijoTemp();
         ukazZaRegulacijoVlaz();
         ukazZaRegulacijoOsv();
         prelom();
-        povpVrednost += trenutnaTemp;
+        povpVrednostTemp += trenutnaTemp;
+        povpVrednostVlaz += trenutnaVlaz;
+        povpVrednostOsv += trenutnaOsv;
         // Sleep(3000); // ponovitev zanke vsake 3 sekunde (odkomentiraj, če želiš po eno simluacijo na 3 sekunde)
     }
-    povpVrednost = povpVrednost / 4;
+    povpVrednostTemp = povpVrednostTemp / 100;
+    povpVrednostVlaz = povpVrednostVlaz / 100;
+    povpVrednostOsv = povpVrednostOsv / 100;
+    sumTemp = sumTemp / 100;
+    sumVlaz = sumVlaz / 100;
+    sumOsv = sumOsv / 100;
+
     cout << "Povprecna vrednost dejanske temperature: ";
-    cout << povpVrednost;
-    if ((povpVrednost >= 10) && (povpVrednost <= 40))
-    {
-        cout << "[C]";
-    }
-    else if ((povpVrednost > 40) && (povpVrednost <= 110))
-    {
-        cout << "[F]";
-    }
-    else if ((povpVrednost >= 283) && (povpVrednost <= 313))
-    {
-        cout << "[K]";
-    }
-    povpVrednost = 0; // reset na 0, da se v ponovnem zagonu funkcije ne sestevajo še stare vrednosti
+    cout << povpVrednostTemp;
+    enotaZelenaTemp();
+    povpVrednostTemp = 0; // reset na 0, da se v ponovnem zagonu funkcije ne sestevajo še stare vrednosti
+
+    cout << "\nPovprecna vrednost dejanske vlaznosti: ";
+    cout << povpVrednostVlaz << "[%]" << endl;
+    povpVrednostVlaz = 0;
+
+    cout << "Povprecna vrednost dejanske osvetljenosti: ";
+    cout << povpVrednostOsv << "[lx]" << endl;
+    povpVrednostOsv = 0;
+
+    cout << "\nPovprecno odstopanje od zelene temperature: ";
+    cout << abs(sumTemp);
+    enotaZelenaTemp();
+    sumTemp = 0;
+
+    cout << "\nPovprecno odstopanje od zelene vlaznosti: ";
+    cout << abs(sumVlaz) << "[%]" << endl;
+    sumVlaz = 0;
+
+    cout << "Povprecno odstopanje od zelene osvetljenosti: ";
+    cout << abs(sumOsv) << "[lx]";
+    sumOsv = 0;
 }
 
-void avtomatskiNacin2()
+void avtomatskiNacin2() // Avtomatski nacin 2
 {
     cout << "Koliko ponovitev naj naredi simulator? " << endl;
     cin >> stPonovitev;
@@ -580,24 +643,58 @@ void avtomatskiNacin2()
         cout << "Trenutna temperatura: ";
         enotaTrenutnaTemp();
         cout << "Trenutna vlaznost: " << trenutnaVlaz << endl;
-        cout << "Trenutna osvetljenost: " << trenutnaOsv << endl;
+        cout << "Trenutna osvetljenost: " << trenutnaOsv << "\n\n";
 
-        cout << endl;
+        razlikaDoZeleneLastnosti();
+
+        sumTemp += razlikaTemp;
+        sumVlaz += razlikaVlaz;
+        sumOsv += razlikaOsv;
 
         ukazZaRegulacijoTemp();
         ukazZaRegulacijoVlaz();
         ukazZaRegulacijoOsv();
         prelom();
-        povpVrednost += trenutnaTemp;
+        povpVrednostTemp += trenutnaTemp;
+        povpVrednostVlaz += trenutnaVlaz;
+        povpVrednostOsv += trenutnaOsv;
         Sleep(casovniRazmik); // ponovitev zanke vsakih x sekund
     }
-    povpVrednost = povpVrednost / stPonovitev;
+    povpVrednostTemp = povpVrednostTemp / stPonovitev;
+    povpVrednostVlaz = povpVrednostVlaz / stPonovitev;
+    povpVrednostOsv = povpVrednostOsv / stPonovitev;
+    sumTemp = sumTemp / stPonovitev;
+    sumVlaz = sumVlaz / stPonovitev;
+    sumOsv = sumOsv / stPonovitev;
+
     cout << "Povprecna vrednost dejanske temperature: ";
-    cout << povpVrednost;
-    povpVrednost = 0; // reset na 0, da se v ponovnem zagonu funkcije ne sestevajo še stare vrednosti
+    cout << povpVrednostTemp;
+    enotaZelenaTemp();
+    povpVrednostTemp = 0; // reset na 0, da se v ponovnem zagonu funkcije ne sestevajo še stare vrednosti
+
+    cout << "\nPovprecna vrednost dejanske vlaznosti: ";
+    cout << povpVrednostVlaz << "[%]" << endl;
+    povpVrednostVlaz = 0;
+
+    cout << "Povprecna vrednost dejanske osvetljenosti: ";
+    cout << povpVrednostOsv << "[lx]" << endl;
+    povpVrednostOsv = 0;
+
+    cout << "\nPovprecno odstopanje od zelene temperature: ";
+    cout << abs(sumTemp);
+    enotaZelenaTemp();
+    sumTemp = 0;
+
+    cout << "\nPovprecno odstopanje od zelene vlaznosti: ";
+    cout << abs(sumVlaz) << "[%]" << endl;
+    sumVlaz = 0;
+
+    cout << "Povprecno odstopanje od zelene osvetljenosti: ";
+    cout << abs(sumOsv) << "[lx]";
+    sumOsv = 0;
 }
 
-void avtomatskiTestniNacin()
+void avtomatskiTestniNacin() // Avtomatski testni nacin
 {
     cout << "Izberi seed za ponovljivost simulacij: " << endl;
     cin >> seed;
@@ -631,21 +728,72 @@ void avtomatskiTestniNacin()
         cout << "Trenutna temperatura: ";
         enotaTrenutnaTemp();
         cout << "Trenutna vlaznost: " << trenutnaVlaz << endl;
-        cout << "Trenutna osvetljenost: " << trenutnaOsv << endl;
+        cout << "Trenutna osvetljenost: " << trenutnaOsv << "\n\n";
 
-        cout << endl;
+        razlikaDoZeleneLastnosti();
+
+        sumTemp += razlikaTemp;
+        sumVlaz += razlikaVlaz;
+        sumOsv += razlikaOsv;
 
         ukazZaRegulacijoTemp();
         ukazZaRegulacijoVlaz();
         ukazZaRegulacijoOsv();
         prelom();
-        povpVrednost += trenutnaTemp;
+        povpVrednostTemp += trenutnaTemp;
+        povpVrednostVlaz += trenutnaVlaz;
+        povpVrednostOsv += trenutnaOsv;
         //  Sleep(3000); // ponovitev zanke vsake 3 sekunde
     }
-    povpVrednost = povpVrednost / 4;
+    povpVrednostTemp = povpVrednostTemp / 4;
+    povpVrednostVlaz = povpVrednostVlaz / 4;
+    povpVrednostOsv = povpVrednostOsv / 4;
+    sumTemp = sumTemp / 4;
+    sumVlaz = sumVlaz / 4;
+    sumOsv = sumOsv / 4;
+
     cout << "Povprecna vrednost dejanske temperature: ";
-    cout << povpVrednost;
-    povpVrednost = 0; // reset na 0, da se v ponovnem zagonu funkcije ne sestevajo še stare vrednosti
+    cout << povpVrednostTemp;
+    enotaZelenaTemp();
+    povpVrednostTemp = 0; // reset na 0, da se v ponovnem zagonu funkcije ne sestevajo še stare vrednosti
+
+    cout << "\nPovprecna vrednost dejanske vlaznosti: ";
+    cout << povpVrednostVlaz << "[%]" << endl;
+    povpVrednostVlaz = 0;
+
+    cout << "Povprecna vrednost dejanske osvetljenosti: ";
+    cout << povpVrednostOsv << "[lx]" << endl;
+    povpVrednostOsv = 0;
+
+    cout << "\nPovprecno odstopanje od zelene temperature: ";
+    cout << abs(sumTemp);
+    enotaZelenaTemp();
+    sumTemp = 0;
+
+    cout << "\nPovprecno odstopanje od zelene vlaznosti: ";
+    cout << abs(sumVlaz) << "[%]" << endl;
+    sumVlaz = 0;
+
+    cout << "Povprecno odstopanje od zelene osvetljenosti: ";
+    cout << abs(sumOsv) << "[lx]";
+    sumOsv = 0;
+}
+
+void datotekaPomoc(){ // branje iz datoteke Pomoc
+    prelom();
+    prelom();
+    string line;
+    ifstream pomoc("Pomoc.txt");
+
+    if(pomoc.is_open()){
+        while (getline(pomoc,line))
+        {
+            cout << line << "\n";
+        }
+        pomoc.close();
+    }
+    else
+    cout << "Napaka pri odpiranju datoteke 'Pomoc'";
 }
 
 int main(int argc, char *argv[]) // MAIN
@@ -676,7 +824,7 @@ int main(int argc, char *argv[]) // MAIN
             glavniMeni();
             cin >> izbiraNacina;
 
-            while (cin.fail() || izbiraNacina != 0 && izbiraNacina != 1 && izbiraNacina != 2 && izbiraNacina != 3)
+            while (cin.fail() || izbiraNacina != 0 && izbiraNacina != 1 && izbiraNacina != 2 && izbiraNacina != 3 && izbiraNacina != 4)
             {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -687,9 +835,14 @@ int main(int argc, char *argv[]) // MAIN
             if (izbiraNacina == 1)
             {
                 vnesiTrenutneLastnosti();
+                prelom();
+                razlikaDoZeleneLastnosti();
                 ukazZaRegulacijoTemp();
                 ukazZaRegulacijoVlaz();
                 ukazZaRegulacijoOsv();
+                trenutnaTemp == 0;
+                trenutnaVlaz == 0;
+                trenutnaOsv == 0;
             }
             else if (izbiraNacina == 2)
             {
@@ -698,6 +851,9 @@ int main(int argc, char *argv[]) // MAIN
             else if (izbiraNacina == 3)
             {
                 avtomatskiNacin2();
+            }
+            else if(izbiraNacina == 4){
+                datotekaPomoc();
             }
             else if (izbiraNacina == 0)
             {
@@ -708,7 +864,7 @@ int main(int argc, char *argv[]) // MAIN
 
         return 0;
     }
-    else if ((argc == 2) && (strcmp(argv[1], "-t") == 0))
+    else if ((argc == 2) && (strcmp(argv[1], "-t") == 0))  // če je argument plus -t, se zazene testni nacin
     {
         cout << "\t\nPOZDRAVLJEN/A V TESTNEM NACINU\n";
         while (dela)
@@ -716,7 +872,7 @@ int main(int argc, char *argv[]) // MAIN
             glavniMeniTestniNacin();
             cin >> izbiraNacinaTestni;
 
-            while (cin.fail() || izbiraNacinaTestni != 1 && izbiraNacinaTestni != 2 && izbiraNacinaTestni != 3)
+            while (cin.fail() || izbiraNacinaTestni != 1 && izbiraNacinaTestni != 2)
             {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -728,8 +884,10 @@ int main(int argc, char *argv[]) // MAIN
             {
                 meniTestniRocni();
                 cin >> izbiraTestniRocni;
-                while (izbiraTestniRocni != 1 && izbiraTestniRocni != 2 && izbiraTestniRocni != 3)
+                while (cin.fail() || izbiraTestniRocni != 1 && izbiraTestniRocni != 2 && izbiraTestniRocni != 3)
                 {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
                     meniTestniRocni();
                     cin >> izbiraTestniRocni;
                 }
@@ -753,20 +911,15 @@ int main(int argc, char *argv[]) // MAIN
             else if (izbiraNacinaTestni == 2)
             {
                 avtomatskiTestniNacin();
-                
+                prekinitevSimulacije();
             }
-            else if (izbiraNacinaTestni == 3)
-            {
-                avtomatskiNacin2();
-            }
-            prekinitevSimulacije();
         }
         return 0;
-    }else
+    }
+    else
     {
         cout << "Za zagon programa v navadnem načinu napiši 'main'" << endl; // TO FAILA
         cout << "Za zagon programa v testnem nacinu napisi 'main -t'" << endl;
         return 0;
     }
-    
 }
