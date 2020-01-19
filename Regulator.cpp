@@ -19,7 +19,7 @@ using namespace std;
  * AVTOR: Dominik Božnik
 */
 
-/* REGULATOR 
+/* REGULATOR 2.0
  * Regulator.cpp je program, ki omogoča reguliranje temperature, vlažnosti in osvetljenosti v prostoru.
  * Na začetku uporabnik vnese želene ambientalne lastnosti, ki se vpišejo v tekstovno datoteko.
  * Program omogoča tri načine delovanja: Ročni, Avtomatski in Avtomatski 2.
@@ -185,12 +185,18 @@ void enotaTrenutnaTemp() // glede na vneseno trenutno temperaturo pretvori v eno
     }
 }
 
+/*void checkSpace(cin){
+    
+}
+*/
 void vnesiZeleneLastnosti() // vnos zelene temperature
 {
     cout << "Vnesi zeleno: ";
     cout << "\nTemperaturo[C, K in F]: ";
     cin >> zelenaTemp;
+    cin.sync(); // pobriše newline v primeru inputa z presledkom (npr. 22 22)
     enotaZelenaTemp();
+   
 
     while (niStevilo) // zanka za preverjanje veljavnosti vnosa uporabnika (napisana malo drugače, kot primer zgoraj in ostali primeri)
     {
@@ -203,6 +209,7 @@ void vnesiZeleneLastnosti() // vnos zelene temperature
             cout << "Temperatura: ";
             cin >> zelenaTemp;
             enotaZelenaTemp();
+            cin.sync();
         }
         else if ((zelenaTemp < 10) || ((zelenaTemp > 110) && (zelenaTemp < 283)) || (zelenaTemp > 313)) // če želena temperatura ni v danih mejah javi nepravilen vnos
         {
@@ -211,6 +218,7 @@ void vnesiZeleneLastnosti() // vnos zelene temperature
             cout << "Temperatura: ";
             cin >> zelenaTemp;
             enotaZelenaTemp();
+            cin.sync();
         }
         else
         {
@@ -221,6 +229,7 @@ void vnesiZeleneLastnosti() // vnos zelene temperature
     cout << "\nVlaznost[%]: ";
     cin >> zelenaVlaz;
     cout << "[%]\n";
+    cin.sync();
 
     while (cin.fail() || (zelenaVlaz > 100) || (zelenaVlaz < 1)) // če vlaznost ni med 1 in 100 javi kot nepravilen vnos (ali pa je vnesen neveljaven znak(npr. string))
     {
@@ -230,6 +239,7 @@ void vnesiZeleneLastnosti() // vnos zelene temperature
         cout << "Vnesi stopnjo vlaznosti med 0 in 100: \n";
         cout << "Vlaznost: ";
         cin >> zelenaVlaz;
+        cin.sync();
     }
 }
 
@@ -238,6 +248,7 @@ void vnesiTrenutneLastnosti() // vnos dejanskih ambientalnih lastnosti
     cout << "Vnesi trenutne lastnosti\n";
     cout << "Temperatura[C, K in F]: "; // simbol za stopinje ne dela v cmd-ju
     cin >> trenutnaTemp;
+    cin.sync();
 
     while ((trenutnaTemp < 10) || ((trenutnaTemp > 90) && (trenutnaTemp < 283)) || (trenutnaTemp > 313) || cin.fail())
     {
@@ -247,6 +258,7 @@ void vnesiTrenutneLastnosti() // vnos dejanskih ambientalnih lastnosti
         cout << "Izberi temparaturo med 10 C in 40C, 41F in 110F ali 293K in 313K\n";
         cout << "Temperatura: ";
         cin >> trenutnaTemp;
+        cin.sync();
     }
 
     enotaTrenutnaTemp();
@@ -255,6 +267,7 @@ void vnesiTrenutneLastnosti() // vnos dejanskih ambientalnih lastnosti
     cout << "Vlaznost[%]: ";
     cin >> trenutnaVlaz;
     cout << "[%]" << endl;
+    cin.sync();
 
     while (cin.fail() || trenutnaVlaz < 0 || trenutnaVlaz > 100)
     {
@@ -264,11 +277,13 @@ void vnesiTrenutneLastnosti() // vnos dejanskih ambientalnih lastnosti
         cout << "Vnesi stopnjo vlaznosti med 0 in 100: \n";
         cout << "Vlaznost: ";
         cin >> trenutnaVlaz;
+        cin.sync();
     }
 
     cout << "Osvetljenost[lx]: ";
     cin >> trenutnaOsv;
     cout << "[lx]" << endl;
+    cin.sync();
 
     while (cin.fail() || trenutnaOsv <= 10 || trenutnaOsv > 10000)
     {
@@ -278,6 +293,7 @@ void vnesiTrenutneLastnosti() // vnos dejanskih ambientalnih lastnosti
         cout << "Vnesi moc osvetljenosti vecjo ali enako 10 in manjso od 10000 \n\n";
         cout << "Osvetljenost[lx]: ";
         cin >> trenutnaOsv;
+        cin.sync();
     }
 }
 
@@ -297,7 +313,8 @@ void glavniMeniTestniNacin() // izpis menija v testnem načinu
     cout << "Kateri rezim zelis testirati?" << endl;
     cout << "====================" << endl;
     cout << "1.) Rocni nacin\n"
-         << "2.) Avtomatski nacin\n";
+         << "2.) Avtomatski nacin\n"
+         << "0.) Izhod\n";
 }
 
 void meniTestniRocni() // izpis menija v testnem ročnem načinu
@@ -306,7 +323,8 @@ void meniTestniRocni() // izpis menija v testnem ročnem načinu
     cout << "===============================\n";
     cout << "1.) Temperaturo\n"
          << "2.) Vlaznost\n"
-         << "3.) Osvetljenost\n";
+         << "3.) Osvetljenost\n"
+         << "0.) Izhod\n";
 }
 
 void datoteka() // pisanje in branje lastnosti v glavno datoteko
@@ -428,6 +446,8 @@ void vnesiTrenutnoTemp() // vnos trenutne temerature za testni nacin
     cout << "\tTemperatura[C, K in F]: \n";
     cin >> trenutnaTemp;
     enotaTrenutnaTemp();
+    cin.sync();
+
     while ((cin.fail() || trenutnaTemp < 10) || ((trenutnaTemp > 110) && (trenutnaTemp < 283)) || (trenutnaTemp > 313))
     {
         cin.clear();
@@ -437,6 +457,7 @@ void vnesiTrenutnoTemp() // vnos trenutne temerature za testni nacin
         cout << "Temperatura: ";
         cin >> trenutnaTemp;
         enotaTrenutnaTemp();
+        cin.sync();
     }
 }
 
@@ -479,6 +500,8 @@ void vnesiTrenutnoVlaznost() // vnos trenutne vlaznosti za testni nacin
     cout << "\nVnesi trenutno vlaznost\n";
     cout << "Vlaznost[%]:\n";
     cin >> trenutnaVlaz;
+    cin.sync();
+
     while (cin.fail() || trenutnaVlaz < 0 || trenutnaVlaz > 100)
     {
         cin.clear();
@@ -487,6 +510,7 @@ void vnesiTrenutnoVlaznost() // vnos trenutne vlaznosti za testni nacin
         cout << "Vnesi stopnjo vlaznosti med 0 in 100: \n";
         cout << "Vlaznost: ";
         cin >> trenutnaVlaz;
+        cin.sync();
     }
 }
 
@@ -520,6 +544,7 @@ void vnesiTrenutnoOsv() // vnos trenutne osvetljenosti za testni nacin
     cout << "Vnesi trenutno osvetljenost:\n";
     cout << "\tOsvetljenost[lx]: \n";
     cin >> trenutnaOsv;
+    cin.sync();
 
     while (cin.fail() || trenutnaOsv <= 10 || trenutnaOsv > 10000)
     {
@@ -529,6 +554,7 @@ void vnesiTrenutnoOsv() // vnos trenutne osvetljenosti za testni nacin
         cout << "Vnesi moc osvetljenosti vecjo ali enako 10 in manjso od 10000 \n";
         cout << "Osvetljenost[lx]: ";
         cin >> trenutnaOsv;
+        cin.sync();
     }
 }
 
@@ -677,6 +703,8 @@ void avtomatskiNacin2() // Avtomatski nacin 2
     // Vnos koliko ponovitev simuliranja želi uporabnik (med 1 in 5000)
     cout << "Koliko ponovitev naj naredi simulator? " << endl; 
     cin >> stPonovitev;
+    cin.sync();
+
     while (cin.fail() || stPonovitev < 1 || stPonovitev > 5000)
     {
         cin.clear();
@@ -684,11 +712,14 @@ void avtomatskiNacin2() // Avtomatski nacin 2
         nepravilenVnos();
         cout << "Izberi stevilo ponovetev med 1 in 5000: \n\n";
         cin >> stPonovitev;
+        cin.sync();
     }
 
     // Vnos koliko naj bo časovni razmik med ponovitvami v milisekundah (več kot 1ms)
     cout << "Koliko naj bo casovni razmik(milisekunde) med ponovitvami? " << endl;
     cin >> casovniRazmik;
+    cin.sync();
+
     while (cin.fail() || casovniRazmik < 1)
     {
         cin.clear();
@@ -696,6 +727,7 @@ void avtomatskiNacin2() // Avtomatski nacin 2
         nepravilenVnos();
         cout << "Izberi casovni razmik daljsi kot 1 milisekundo: \n\n";
         cin >> casovniRazmik;
+        cin.sync();
     }
 
     srand(time(NULL)); // naključen seed (vedno drugi rezultati)
@@ -776,6 +808,7 @@ void avtomatskiTestniNacin() // Avtomatski testni nacin
 {
     cout << "Izberi seed za ponovljivost simulacij: " << endl;
     cin >> seedTestni;
+    cin.sync();
     while (cin.fail() || seedTestni < 1)
     {
         cin.clear();
@@ -783,11 +816,13 @@ void avtomatskiTestniNacin() // Avtomatski testni nacin
         nepravilenVnos();
         cout << "Izberi seed vecji kot 1: \n";
         cin >> seed;
+        cin.sync();
     }
     srand(seed); // generiral bo vedno iste ambientalne lastnosti za izbran seed (npr. vedno isti rezultati za seed 1, seed 2, seed 3 itd.)
 
     cout << "Koliko ponovitev naj naredi simulator? " << endl;
     cin >> stPonovitevTestni;
+    cin.sync();
     while (cin.fail() || stPonovitevTestni < 1 || stPonovitevTestni > 5000)
     {
         cin.clear();
@@ -795,9 +830,11 @@ void avtomatskiTestniNacin() // Avtomatski testni nacin
         nepravilenVnos();
         cout << "Izberi stevilo ponovetev med 1 in 5000: \n\n";
         cin >> stPonovitevTestni;
+        cin.sync();
     }
     cout << "Koliko naj bo casovni razmik(milisekunde) med ponovitvami? " << endl;
     cin >> casovniRazmikTestni;
+    cin.sync();
     while (cin.fail() || casovniRazmikTestni < 1)
     {
         cin.clear();
@@ -805,6 +842,7 @@ void avtomatskiTestniNacin() // Avtomatski testni nacin
         nepravilenVnos();
         cout << "Izberi casovni razmik daljsi kot 1 milisekundo: \n\n";
         cin >> casovniRazmikTestni;
+        cin.sync();
     }
 
     for (int i = 0; i < stPonovitevTestni; i++)
@@ -905,6 +943,7 @@ int main(int argc, char *argv[]) // MAIN
     // Vnos imena datoteke (manj kot 16 znakov)
     cout << "Vnesite ime datoteke v katero bodo shranjene lastnosti: \n";
     cin >> imeDat;
+
     while (cin.fail() || imeDat.size() < 1 || imeDat.size() > 16)
     {
         cin.clear();
@@ -969,6 +1008,7 @@ int main(int argc, char *argv[]) // MAIN
             // Izhod
             else if (izbiraNacina == 0)
             {
+                cout << "\nIZHOD";
                 return 0;
             }
             prekinitevSimulacije();
@@ -979,14 +1019,14 @@ int main(int argc, char *argv[]) // MAIN
 
     else if ((argc == 2) && (strcmp(argv[1], "-t") == 0)) // če je klican z dvema argumentoma in je drugi argument -t (npr. regulator -t), potem se zažene testni nacin
     {
-        cout << "\t\nPOZDRAVLJEN/A V TESTNEM NACINU\n";
+        cout << "\t\nPOZDRAVLJEN/A V TESTNEM NACINU, Verzija 2.0\n";
         while (dela)
         {
             // Glavni meni
             glavniMeniTestniNacin();
             cin >> izbiraNacinaTestni;
-
-            while (cin.fail() || izbiraNacinaTestni != 1 && izbiraNacinaTestni != 2)
+    
+            while (cin.fail() || izbiraNacinaTestni != 1 && izbiraNacinaTestni != 2 && izbiraNacinaTestni != 0)
             {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -999,13 +1039,14 @@ int main(int argc, char *argv[]) // MAIN
             {
                 meniTestniRocni();
                 cin >> izbiraTestniRocni;
-                while (cin.fail() || izbiraTestniRocni != 1 && izbiraTestniRocni != 2 && izbiraTestniRocni != 3)
+                
+                while (cin.fail() || izbiraTestniRocni != 1 && izbiraTestniRocni != 2 && izbiraTestniRocni != 3 && izbiraTestniRocni != 0)
                 {
                     cin.clear();
                     cin.ignore(numeric_limits<streamsize>::max(), '\n');
                     nepravilenVnos();
                     meniTestniRocni();
-                    cin >> izbiraTestniRocni;
+                    cin >> izbiraTestniRocni;    
                 }
                 // Testiranje temperature
                 if (izbiraTestniRocni == 1)
@@ -1028,6 +1069,11 @@ int main(int argc, char *argv[]) // MAIN
                     ukazZaRegulacijoOsv();
                     trenutnaOsv = 0;
                 }
+                else if(izbiraTestniRocni == 0)
+                {
+                    cout << "\nIZHOD";
+                    return 0;
+                }
                 prekinitevSimulacije();
             }
             // Testiranje avtomatskega načina
@@ -1035,6 +1081,11 @@ int main(int argc, char *argv[]) // MAIN
             {
                 avtomatskiTestniNacin();
                 prekinitevSimulacije();
+            }
+            else if(izbiraNacinaTestni == 0)
+            {
+                cout << "\nIZHOD";
+                return 0;
             }
         }
         return 0;
